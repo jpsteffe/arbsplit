@@ -14,7 +14,7 @@ cd src
 uvicorn app:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Open <http://127.0.0.1:8000/>. Use **Load hypothetical example** to see the complete workflow with fabricated runners, two fabricated external fixed Win prices, and a fabricated Place pool. The example is *not* a real Prairie Meadows race.
+Open <http://127.0.0.1:8000/>. Use **Try an example** to see the complete workflow with three fabricated horses and fabricated Win odds. The example is *not* a real Prairie Meadows race.
 
 Run all tests from the repository root:
 
@@ -27,14 +27,19 @@ The `test` workflow runs the same script on every pull request.
 
 ## Using the form
 
-1. Select **Prairie Meadows**, specify the race number and available budget.
-2. Enter every runner (program number plus optional name). There must be two or more runners.
-3. For pari-mutuel bets, add a **Win, Place or Show pool**. Enter the current stake amount wagered on *each* runner in that pool; the form sums the amounts into `gross_pool`. The takeout percentage starts at a track estimate but is editable. The backend needs a **complete, strictly positive** handle distribution for all runners, not just the one you intend to back.
-4. Add priced wagers. Fixed-odds wagers require one external **American** price (e.g. `+400`, `-110`) or a **decimal** price (e.g. `5.00`). Pool-backed wagers reference one of the pools. Use “Create ... offers for every runner” after entering a pool, if useful.
-5. Review **Wager sizes & limits**, especially actual minimums and allowed increments at the current venue/channel. Optionally add a per-wager maximum stake.
-6. Compare **maximum worst-case profit** versus **fewest bets meeting a positive minimum-profit threshold**, or run either one alone.
+The page is written for people who do not know horse racing. It has two inputs and one button:
 
-The **Advanced JSON** panel accepts any original optimizer problem, including exotic markets, complete exotic pool snapshots, book limits and per-wager overrides. Check **Calculate using edited JSON** when you want that input to override the form. Existing example programs and optimizer tests are included unchanged.
+1. **Budget.** The most you want to spend.
+2. **Odds for each horse.** One table with a row per horse (number, optional name, and the odds to win). Leave a box empty if that bet is not available. Choose how odds are written once, above the table: American (`+400`), decimal (`5.00`) or fractional (`4/1`, `5-2`). Fractional odds that have no exact decimal form are rounded *down*, never up. Tick **Also enter Place and Show odds** to add two more columns; a short glossary explains Win, Place, Show and odds.
+3. Press **Find my bets**. The result is a plain-language verdict (profit found, or no sure profit), a numbered list of bets (“$28.00 on #1 to win”), what you spend and the worst-case return. If a plan with fewer bets still guarantees a profit, it is offered under **Prefer fewer bets?**.
+
+The page always asks the server for both modes (`max_profit` and `min_bets`) with the `max_profit` tie-break.
+
+### Advanced options (collapsed by default)
+
+- **Track and smallest bet.** Pick the track preset and edit the smallest Win, Place and Show bet. Each is used as both the minimum and the increment. Exotic-bet minimums still come from the track preset and appear in the generated JSON.
+- **Calculation settings.** Smallest profit worth reporting (`minimum_profit`) and the solver timeout.
+- **Expert: edit the raw data.** This accepts any original optimizer problem, including **pari-mutuel pool snapshots**, exotic markets, book limits and per-wager overrides. Use **Fill from the form above** to start from the current form, then tick **Use this JSON instead of the form**. The form itself has no pool or exotic-bet inputs. They were removed to keep it simple. Existing example programs and optimizer tests are included unchanged.
 
 ## One calculation endpoint
 
@@ -71,7 +76,7 @@ The response is `{ "results": { "max_profit": { ... }, "min_bets": { ... } } }` 
 src/app.py                        FastAPI single endpoint / static hosting
 src/static/index.html             Static UI
 src/static/styles.css             UI styling
-src/static/app.js                 UI state, form->JSON conversion and results
+src/static/app.js                 UI state, odds parsing, form->JSON conversion and results
 src/static/tracks.js              Track presets / linked sources
 src/arbitrage_optimizer.py        Optimizer (unchanged)
 src/requirements.txt              Runtime dependencies
@@ -83,7 +88,7 @@ examples/example_arbitrage_usage.py  Optimizer examples (unchanged)
 
 ## Prairie Meadows preset: sources and caveats
 
-Track selection does **not** change the optimization algorithm; it fills initial stake rules and estimated pool takeout percentages. Verify all values against current race-program and tote information.
+Track selection does **not** change the optimization algorithm; it fills initial stake rules. The estimated takeout percentages in `tracks.js` are no longer used by the form. They are a reference when you write pool snapshots by hand in the raw JSON editor. Verify all values against current race-program and tote information.
 
 | Market | Starter minimum / step | Estimated takeout |
 |---|---:|---:|
