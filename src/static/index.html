@@ -3,130 +3,138 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#162a29">
-  <meta name="description" content="A local one-race arbitrage calculator with Prairie Meadows track presets.">
-  <title>Race Arbitrage Studio · Prairie Meadows</title>
+  <meta name="theme-color" content="#1f4d3a">
+  <meta name="description" content="Enter the odds on each horse and find out how to split your bets so you profit whichever horse wins. Includes Prairie Meadows presets.">
+  <title>Race Arbitrage Calculator</title>
   <link rel="stylesheet" href="/static/styles.css">
   <script defer src="/static/tracks.js"></script>
   <script defer src="/static/app.js"></script>
 </head>
 <body>
-  <div class="site-shell">
-    <div class="topline">
-      <a href="/" class="brand" aria-label="Race Arbitrage Studio home">
-        <span class="brand-icon" aria-hidden="true"><span></span></span>
-        <span>THE RACE <strong>LAB</strong></span>
-      </a>
-      <div class="topline-right"><span class="tiny-orbit" aria-hidden="true"></span> LOCAL CALCULATION TOOL <span class="divider-vertical"></span> NO LIVE TOTE FEED</div>
-    </div>
-
-    <header class="hero">
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-line"></span> SINGLE-RACE PORTFOLIO OPTIMIZER <span class="hero-edition"> / 01</span></div>
-        <h1>Every outcome.<br><em>One calculation.</em></h1>
-        <p>Enter the runners, available prices and pool snapshots. Find the allocation with the highest modeled worst-case profit—or the fewest wagers that reach your target.</p>
-        <div class="hero-actions">
-          <button id="sample-btn" type="button" class="btn btn-light">Load hypothetical example <span aria-hidden="true">↗</span></button>
-          <button id="reset-btn" type="button" class="btn btn-text">Reset race</button>
-        </div>
+  <div class="page">
+    <header class="site-header">
+      <h1>Race Arbitrage Calculator</h1>
+      <p class="lead">Different betting sites sometimes disagree on a horse's odds. When they do, you can split your money across several horses so you <strong>make a profit no matter which one wins</strong>. Enter the odds below and this tool does the math.</p>
+      <div class="header-actions">
+        <button id="sample-btn" type="button" class="btn btn-secondary">Try an example</button>
+        <button id="reset-btn" type="button" class="btn btn-link">Clear everything</button>
       </div>
-      <div class="hero-art" aria-hidden="true">
-        <div class="art-circuit art-circuit-outer"></div>
-        <div class="art-circuit art-circuit-inner"></div>
-        <div class="art-stripe art-stripe-one"></div>
-        <div class="art-stripe art-stripe-two"></div>
-        <div class="art-dot art-dot-one"></div><div class="art-dot art-dot-two"></div>
-        <div class="art-number">01 / PRM</div>
-      </div>
+      <details class="glossary">
+        <summary>New to horse racing? Quick glossary</summary>
+        <dl>
+          <dt>Win</dt><dd>A bet that pays only if your horse finishes <strong>1st</strong>. This is the simplest bet and the only one you need.</dd>
+          <dt>Place</dt><dd>Pays if your horse finishes <strong>1st or 2nd</strong>.</dd>
+          <dt>Show</dt><dd>Pays if your horse finishes in the <strong>top 3</strong>.</dd>
+          <dt>Odds</dt><dd>How much a bet pays. At <strong>+400</strong> (also written 4/1 or 5.00), a $10 bet returns $50: your $10 back plus $40 profit.</dd>
+          <dt>Program number</dt><dd>The number printed in the race program for each horse, such as #1 or #7.</dd>
+        </dl>
+      </details>
     </header>
-
-    <div class="content-intro">
-      <div><span class="kicker">WORKSPACE</span><h2>Set up your race</h2></div>
-      <p>All wager amounts are in USD. Track presets are editable starting points, not a substitute for the live board.</p>
-    </div>
 
     <main class="layout">
       <form id="race-form" class="editor" novalidate>
-        <section class="panel" aria-labelledby="step-track">
-          <div class="panel-title"><span class="step-no">01</span><div><h3 id="step-track">Track & budget</h3><p>Choose a preset and set your spending cap.</p></div></div>
-          <div class="field-grid two">
-            <label class="field"><span>Racetrack</span><select id="track-select" name="track"></select></label>
-            <label class="field"><span>Race number <small>optional label</small></span><input id="race-number" type="text" inputmode="numeric" maxlength="12" value="1" placeholder="e.g. 3"></label>
-            <label class="field wide"><span>Total budget <small>USD · max to spend</small></span><div class="input-prefix"><span>$</span><input id="budget" name="budget" type="text" inputmode="decimal" value="100.00" autocomplete="off" aria-label="Budget in dollars"></div></label>
+        <section class="card" aria-labelledby="step-budget">
+          <h2><span class="step-no">1</span><span id="step-budget">How much do you want to spend?</span></h2>
+          <label class="field budget-field">
+            <span class="sr-only">Total budget in dollars</span>
+            <div class="input-prefix"><span>$</span><input id="budget" name="budget" type="text" inputmode="decimal" value="100" autocomplete="off"></div>
+            <small>We'll never suggest spending more than this. We may suggest less if that's all you need.</small>
+          </label>
+        </section>
+
+        <section class="card" aria-labelledby="step-odds">
+          <h2><span class="step-no">2</span><span id="step-odds">Enter the odds for each horse</span></h2>
+          <p class="help">Only fill in the odds you can actually get. Leave a box empty if that bet isn't available.</p>
+
+          <div class="odds-toolbar">
+            <label class="field inline-field">
+              <span>Odds are written like</span>
+              <select id="odds-format">
+                <option value="american">+400 or -110 (American)</option>
+                <option value="decimal">5.00 (Decimal)</option>
+                <option value="fractional">4/1 (Fractional)</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="use-place-show"> Also enter Place and Show odds</label>
           </div>
-          <div class="preset-info" id="preset-info"></div>
+
+          <div class="table-wrap">
+            <table class="odds-table" id="odds-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="col-num">Horse #</th>
+                  <th scope="col" class="col-name">Name <small>optional</small></th>
+                  <th scope="col" class="col-odds">Odds to <strong>win</strong><small>finishes 1st</small></th>
+                  <th scope="col" class="col-odds col-extra">Odds to <strong>place</strong><small>top 2</small></th>
+                  <th scope="col" class="col-odds col-extra">Odds to <strong>show</strong><small>top 3</small></th>
+                  <th scope="col" class="col-del"><span class="sr-only">Remove</span></th>
+                </tr>
+              </thead>
+              <tbody id="horses-list"></tbody>
+            </table>
+          </div>
+          <button id="add-horse" type="button" class="btn btn-link">+ Add another horse</button>
         </section>
 
-        <section class="panel" aria-labelledby="step-runners">
-          <div class="panel-title"><span class="step-no">02</span><div><h3 id="step-runners">Runners</h3><p>Use the program numbers from the race card.</p></div><span class="count-tag" id="runner-count">0 RUNNERS</span></div>
-          <div class="runners-head" aria-hidden="true"><span>PROGRAM #</span><span>HORSE NAME <small>(OPTIONAL)</small></span><span></span></div>
-          <div id="runners-list" class="runners-list"></div>
-          <button id="add-horse" type="button" class="add-link">+ Add another runner</button>
+        <section class="card run-card">
+          <button type="submit" id="run-btn" class="btn btn-primary"><span id="run-button-label">Find my bets</span><span aria-hidden="true">→</span></button>
+          <div id="error-area" class="error-area" role="alert" aria-live="polite" hidden></div>
         </section>
 
-        <section class="panel" aria-labelledby="step-pools">
-          <div class="panel-title"><span class="step-no">03</span><div><h3 id="step-pools">Pari-mutuel pools</h3><p>Enter a complete current snapshot if using pool-backed bets.</p></div></div>
-          <div id="pools-list" class="stack-list"></div>
-          <button id="add-pool" type="button" class="add-link">+ Add Win / Place / Show pool</button>
-          <p class="section-hint">Pool totals are calculated from the amounts entered for each runner. Exotics with complete combination-level pools can be supplied via <a href="#advanced-json">Advanced JSON</a>.</p>
-        </section>
+        <section class="card advanced-card">
+          <details id="advanced-details">
+            <summary>Advanced options <small>Most people can skip this</small></summary>
+            <div class="advanced-body">
+              <h3>Track and smallest bet</h3>
+              <label class="field">
+                <span>Racetrack</span>
+                <select id="track-select"></select>
+              </label>
+              <div id="preset-info" class="preset-info"></div>
+              <div id="stake-rules-list" class="rules-grid"></div>
+              <p class="help">Tracks only accept bets in certain amounts. We'll suggest bets in multiples of these amounts. Check the track's current rules before betting.</p>
 
-        <section class="panel" aria-labelledby="step-offers">
-          <div class="panel-title"><span class="step-no">04</span><div><h3 id="step-offers">Available wagers</h3><p>Enter priced straight bets from a fixed source or a pool.</p></div><span class="count-tag" id="offer-count">0 OFFERS</span></div>
-          <div class="offer-actions"><button id="add-offer" type="button" class="btn btn-secondary">+ Add a wager</button><button id="add-all-win" type="button" class="btn btn-quiet">+ Win for every runner</button></div>
-          <div id="offers-list" class="stack-list"></div>
-          <p class="section-hint">At Prairie Meadows, live race wagers are usually pari-mutuel. Fixed odds are for external prices you can actually obtain; they are not closing tote odds.</p>
-        </section>
+              <h3>Calculation settings</h3>
+              <div class="two-col">
+                <label class="field">
+                  <span>Smallest profit worth reporting</span>
+                  <div class="input-prefix"><span>$</span><input id="minimum-profit" type="text" inputmode="decimal" value="0.01"></div>
+                </label>
+                <label class="field">
+                  <span>Give up after (seconds)</span>
+                  <input id="time-limit" type="number" value="12" min="1" max="60" step="1">
+                </label>
+              </div>
 
-        <section class="panel compact-panel" aria-labelledby="step-rules">
-          <details id="rules-details"><summary><span class="detail-icon">+</span><span><strong id="step-rules">Wager sizes & limits</strong><small>Track defaults, minimums and increments</small></span></summary>
-            <div class="detail-body"><div id="stake-rules-list"></div><p class="section-hint">For every selected wager the optimizer allows zero, or a stake satisfying the minimum and increment. The defaults are editable and might not match a teller's current accepted amounts.</p></div>
-          </details>
-        </section>
-
-        <section class="panel compact-panel" id="advanced-json">
-          <details id="json-details"><summary><span class="detail-icon">+</span><span><strong>Advanced JSON</strong><small>Use the full optimizer input format, including exotic pools and book limits</small></span></summary>
-            <div class="detail-body">
-              <p class="section-hint">Open and edit an exact copy of the backend problem dictionary. When you run from this editor, its contents take precedence over the form above.</p>
-              <textarea id="json-editor" rows="13" spellcheck="false" aria-label="Advanced problem JSON editor"></textarea>
-              <div class="json-actions"><button type="button" class="btn btn-secondary" id="refresh-json">Regenerate from form</button><button type="button" class="btn btn-quiet" id="copy-json">Copy JSON</button></div>
-              <label class="inline-check"><input type="checkbox" id="use-json"> Calculate using edited JSON instead of form fields</label>
+              <h3>Expert: edit the raw data</h3>
+              <p class="help">Use this for pari-mutuel pool snapshots and exotic bets (exacta, trifecta and so on). The JSON is the full optimizer input.</p>
+              <textarea id="json-editor" rows="12" spellcheck="false" aria-label="Advanced problem JSON editor"></textarea>
+              <div class="json-actions">
+                <button type="button" class="btn btn-secondary" id="refresh-json">Fill from the form above</button>
+                <button type="button" class="btn btn-quiet" id="copy-json">Copy</button>
+              </div>
+              <label class="check"><input type="checkbox" id="use-json"> Use this JSON instead of the form when I click “Find my bets”</label>
             </div>
           </details>
-        </section>
-
-        <section class="run-panel" aria-labelledby="step-run">
-          <div class="run-head"><div><span class="kicker">FINAL STEP</span><h3 id="step-run">Run the numbers.</h3></div><span class="run-mark" aria-hidden="true">↗</span></div>
-          <div class="field-grid two">
-            <label class="field"><span>Optimization</span><select id="mode"><option value="both">Compare both objectives</option><option value="max_profit">Maximum guaranteed profit</option><option value="min_bets">Fewest qualifying bets</option></select></label>
-            <label class="field"><span>Minimum modeled profit <small>for fewest bets</small></span><div class="input-prefix"><span>$</span><input id="minimum-profit" type="text" inputmode="decimal" value="0.01" aria-label="Minimum modeled profit in dollars"></div></label>
-            <label class="field"><span>Min-bets tie break</span><select id="tie-break"><option value="max_profit">Highest profit at minimum bet count</option><option value="none">None (faster)</option></select></label>
-            <label class="field"><span>Solver timeout <small>seconds · per solve</small></span><input id="time-limit" type="number" value="12" min="1" max="60" step="1"></label>
-          </div>
-          <button type="submit" id="run-btn" class="btn btn-primary"><span id="run-button-label">Calculate portfolios</span><span aria-hidden="true">→</span></button>
-          <p class="run-footer">One request to <code>POST /api/calculate</code> · Powered by SciPy HiGHS MILP.</p>
         </section>
       </form>
 
       <aside class="results-column" aria-labelledby="results-title">
         <div class="results-sticky">
-          <section class="results-panel">
-            <div class="results-panel-head"><div><span class="kicker">OUTPUT / 01</span><h2 id="results-title">Your results</h2></div><span id="result-status" class="status-indicator">READY</span></div>
-            <div id="error-area" class="error-area" role="alert" aria-live="polite" hidden></div>
+          <section class="card results-card">
+            <div class="results-head"><h2 id="results-title">Your results</h2><span id="result-status" class="status">Ready</span></div>
             <div id="results-content" aria-live="polite">
               <div class="placeholder">
-                <div class="placeholder-graphic" aria-hidden="true"><span>↗</span><span>↘</span><span>→</span></div>
-                <h3>The board is clear.</h3>
-                <p>Add the runners and wagers, then calculate to see how the stakes perform across every modeled finish.</p>
-                <p class="placeholder-hint">Or load the hypothetical example to try it immediately.</p>
+                <p class="placeholder-title">Nothing calculated yet</p>
+                <p>Enter your budget and the odds, then press <strong>Find my bets</strong>.</p>
+                <p>Want to see how it works first? Press <strong>Try an example</strong>.</p>
               </div>
             </div>
           </section>
-          <div class="caveat"><div class="caveat-icon">!</div><div><strong>Modeled, not guaranteed</strong><p>Pool snapshots are frozen in the model. Your own stake, late wagers, breakage, minimum dividends, coupled entries, scratches and race-specific settlement rules can change actual payouts. This tool never places bets.</p></div></div>
+          <p class="caveat"><strong>Heads up:</strong> results are only as good as the odds you type in. Real odds can change before you bet, and this tool never places bets for you.</p>
         </div>
       </aside>
     </main>
-    <footer class="footer"><span>THE RACE LAB <span class="footer-separator">/</span> LOCAL RESEARCH TOOL</span><span>Prices are entered manually · No account or data feed required</span></footer>
   </div>
 </body>
 </html>
