@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: cd79e82
+_src_path: git@github.com:jpsteffe/infra_template.git
+app_name: arbsplit
+clouddeploy_bucket: jpsteffe-clouddeploy
+clouddeploy_exec_sa: clouddeploy-exec@jpsteffe.iam.gserviceaccount.com
+default_access_group: app-access@jpsteffe.com
+deployer_sa: app-deployer@jpsteffe.iam.gserviceaccount.com
+gcp_project: jpsteffe
+github_owner: jpsteffe
+iap_service_agent: service-1008138599778@gcp-sa-iap.iam.gserviceaccount.com
+project_number: '1008138599778'
+region: us-central1
+state_bucket: jpsteffe-tf-state
+wif_provider: projects/1008138599778/locations/global/workloadIdentityPools/github-pool/providers/github-provider

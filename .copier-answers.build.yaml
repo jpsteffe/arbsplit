@@ -1,0 +1,9 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: bb89818
+_src_path: git@github.com:jpsteffe/build_template.git
+app_name: arbsplit
+clouddeploy_bucket: jpsteffe-clouddeploy
+deployer_sa: app-deployer@jpsteffe.iam.gserviceaccount.com
+gcp_project: jpsteffe
+region: us-central1
+wif_provider: projects/1008138599778/locations/global/workloadIdentityPools/github-pool/providers/github-provider

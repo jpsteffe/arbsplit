@@ -1,0 +1,25 @@
+name: pipeline
+
+# Runs on every push to main. Each stage is a reusable workflow that skips its
+# own jobs when the push has nothing for it to do. Release runs after apply, so
+# a commit that changes both applies Terraform first.
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pipeline-arbsplit
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    uses: ./.github/workflows/apply.yaml
+
+  release:
+    needs: apply
+    uses: ./.github/workflows/release.yaml

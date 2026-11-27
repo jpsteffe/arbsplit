@@ -1,0 +1,76 @@
+name: release
+
+# Release stage called by pipeline.yaml after apply. It replaces the
+# placeholder from infra_template.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.diff.outputs.release }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # Release when the push has no usable base, such as a new branch.
+          if [ -z "$BEFORE" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -qE '^(src/|Dockerfile$|clouddeploy/|\.github/workflows/release\.yaml$)'; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    needs: changes
+    if: needs.changes.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "projects/1008138599778/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
+          service_account: "app-deployer@jpsteffe.iam.gserviceaccount.com"
+          token_format: "access_token"
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Log in to Artifact Registry
+        uses: docker/login-action@v4
+        with:
+          registry: us-central1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Build and push image
+        run: |
+          image="us-central1-docker.pkg.dev/jpsteffe/arbsplit/arbsplit:${{ github.sha }}"
+          docker build --tag "$image" .
+          docker push "$image"
+          echo "IMAGE=$image" >> "$GITHUB_ENV"
+
+      - name: Create Cloud Deploy release
+        run: |
+          set -euo pipefail
+          # Cloud Deploy derives the rollout ID as <release>-to-<target>-0001, which
+          # must be 63 characters or fewer. A full 40-char SHA exceeds that limit.
+          gcloud deploy releases create "rel-${GITHUB_SHA:0:12}-${{ github.run_attempt }}" \
+            --delivery-pipeline="arbsplit" \
+            --region="us-central1" \
+            --project="jpsteffe" \
+            --source=clouddeploy \
+            --gcs-source-staging-dir="gs://jpsteffe-clouddeploy/source" \
+            --images="app-image=${IMAGE}"
