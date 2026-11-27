@@ -1,0 +1,8 @@
+.git
+.github
+.terraform
+infra
+docs
+tests
+examples
+**/__pycache__

@@ -1,4 +1,10 @@
-FROM busybox:1.36
-COPY src/ /www
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY src/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY src/ .
+RUN useradd --system --no-create-home app
+USER app
 EXPOSE 8080
-CMD ["sh", "-c", "httpd -f -p ${PORT:-8080} -h /www"]
+CMD ["sh", "-c", "exec uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}"]

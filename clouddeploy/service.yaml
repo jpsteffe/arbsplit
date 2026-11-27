@@ -10,3 +10,6 @@ spec:
       serviceAccountName: arbsplit@jpsteffe.iam.gserviceaccount.com
       containers:
         - image: app-image
+          resources:
+            limits:
+              memory: 1Gi
